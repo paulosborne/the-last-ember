@@ -1,76 +1,113 @@
-# The Last Ember MVP Technical Design
+# The Last Ember Multi-Page Technical Design
 
 ## Architecture
 
-Retain the existing Vite, React, TypeScript, and CSS application as a static single page. No router, backend, data fetching, CMS, UI framework, or additional dependency is needed.
+Retain the existing Vite, React, TypeScript, and CSS application. Add React Router with browser-history routing; it is the minimal dependency that gives the four required URLs correct history, active navigation, and page-level metadata behavior.
 
-The homepage is the one public seam: visitors interact with the rendered document, and acceptance checks verify that document's navigation, links, content, responsive layouts, and accessibility behavior. This has high leverage for the MVP because there is no domain logic that warrants a lower-level test seam.
+The router is the routing seam. Route modules receive no URL concerns beyond their own content; `SiteLayout` owns shared chrome and renders the current page through an outlet. Content collections are separate seams because they vary independently from layout and rendering.
 
 ## Proposed Structure
 
 | Location | Responsibility |
 | --- | --- |
-| `src/App.tsx` | Compose the semantic page landmarks and section modules. |
-| `src/content/chronicle.ts` | Hold typed, local Village Chronicle entries. |
-| `src/config/community.ts` | Hold the Discord invitation configuration and the fixed server dashboard URL. |
-| `src/components/` | Hold only cohesive presentational modules when they improve readability, such as site navigation, a Discord action, and Chronicle rendering. |
-| `src/App.css` | Hold page and section layout, component styles, responsive rules, and motion rules. |
-| `src/index.css` | Hold design tokens, global reset, typography defaults, focus treatment, and base element styles. |
-| `public/images/` | Hold clearly named image placeholders and a short replacement guide for approved community screenshots. |
-| `index.html` | Hold title, description, and other basic static metadata. |
+| `src/App.tsx` | Define the route tree and shared site layout route. |
+| `src/components/SiteHeader.tsx` | Render wordmark, responsive internal navigation, active route state, and the join action. |
+| `src/components/SiteFooter.tsx` | Render community branding, configured Discord state, monitoring link, and disclaimer. |
+| `src/components/DiscordAction.tsx` | Render the configured Discord action or its honest unavailable state. |
+| `src/components/PageTitle.tsx` | Set title and optional description for the active route. |
+| `src/components/VillagerCard.tsx` | Render a profile or clearly labelled placeholder from one villager record. |
+| `src/pages/HomePage.tsx` | Render the concise hero and content previews. |
+| `src/pages/VillagePage.tsx` | Render Longkeep, Old Town, New Longkeep, and future screenshot locations. |
+| `src/pages/VillagersPage.tsx` | Render the People of Longkeep gallery. |
+| `src/pages/ChroniclePage.tsx` | Render the Chronicle archive. |
+| `src/content/chronicle.ts` | Hold typed Chronicle entries. |
+| `src/content/villagers.ts` | Hold typed, placeholder-safe villager records. |
+| `src/config/community.ts` | Hold nullable Discord configuration and the fixed Grafana URL. |
+| `src/App.css` | Hold shared, layout, page, and card styles with responsive rules. |
+| `src/index.css` | Hold global design tokens, reset, typography, focus treatment, and base styles. |
+| `public/images/` | Hold documented local screenshot and profile-image placeholders. |
 
-The implementation should keep simple, one-use markup in `App.tsx`; it should not introduce a component for every visual fragment. The Chronicle's data/rendering separation and the community configuration are real seams because each varies independently from page layout.
+No router wrapper, page-specific header/footer variants, repository layer, or generic card framework is needed. Those would reduce locality without a concrete varying need.
 
-## Content And Configuration
+## Routing
 
-- Chronicle entries are an exported typed collection. Each entry contains only editorial fields the rendering module needs, such as a title, week label, summary, and supplied highlights.
-- Community configuration exports a nullable Discord invitation URL and the Grafana dashboard URL. The Discord action determines its active or unavailable presentation from that single value.
-- The unavailable Discord state must be keyboard clear and must not be an anchor with an empty `href`.
-- Placeholder assets use descriptive names that state their intended replacement location. The adjacent guide identifies the asset, desired subject, and replacement procedure.
+`BrowserRouter` will render a layout route with an index route and three child routes:
 
-## Visual System
+```text
+/
+|-- index             HomePage
+|-- village           VillagePage
+|-- villagers         VillagersPage
+`-- chronicle         ChroniclePage
+```
 
-- Use CSS custom properties for `#171A19`, `#C66D36`, `#E6D7BA`, and `#6D7860`, plus tonal variants needed for contrast.
-- Use a locally available, distinctive serif system stack for headings and a clean system sans-serif stack for body copy. This avoids external font requests while preserving static-hosting simplicity.
-- Build atmosphere through composition, warm colour contrast, restrained texture/overlay treatment, and generous spacing rather than image-heavy effects, parallax, or animation.
-- Use one small set of transition values, disable nonessential transitions under `prefers-reduced-motion`, and retain visible focus indicators.
+The Grafana dashboard remains an ordinary external anchor, not a route. No `/villagers/:slug` route is registered in this iteration; each record's `slug` is reserved for that future extension.
 
-## Accessibility And SEO
+For direct requests such as `/village`, Nginx must serve `index.html` when no matching static asset exists:
 
-- Use `header`, `nav`, `main`, `section`, `article`, and `footer` landmarks.
-- Give every section an ordered heading and every control an accessible name.
-- Use a skip link where it improves navigation through the persistent header.
-- Ensure external links that open new tabs use `rel="noreferrer"` and communicate that behavior accessibly.
-- Treat purely decorative images as empty-alt imagery; give meaningful placeholder images descriptive alternative text that identifies the intended screenshot subject.
-- Set a meaningful page title, description, language, viewport, and social-preview-ready base metadata without requiring a hosted image.
+```nginx
+location / {
+  try_files $uri $uri/ /index.html;
+}
+```
+
+This is a deployment requirement only. It will be documented in the README or deployment handoff, not applied to infrastructure in this task.
+
+## Content Models
+
+The existing `ChronicleEntry` model remains the archive source. A new `VillagerProfile` model will have a small optional interface:
+
+```ts
+type VillagerProfile = {
+  slug: string
+  name?: string
+  playstyle?: string
+  portraitImage: string
+  homeImage: string
+  homeName?: string
+  biography?: string
+  motto?: string
+  isPlaceholder?: boolean
+}
+```
+
+The implementation will initially contain clearly identified placeholders only. The card module will centralise fallback labels, text alternatives, and image treatment so replacing a placeholder record with an authentic profile is a local data change.
+
+## Homepage Refactor
+
+The current hero transfers directly into `HomePage`. The detailed Old Town/New Longkeep card grid moves to `VillagePage`; the full values grid is reduced to introductory copy or removed from home; the full Chronicle article moves to `ChroniclePage`; and server-status explanation moves out of the homepage, leaving the external dashboard link in shared navigation/footer where appropriate.
+
+Home will render a small village introduction, a deliberately limited villager teaser, and the latest Chronicle record selected from the typed collection. This avoids parallel copies of data and content.
+
+## Visual And Accessibility Design
+
+- Retain the current CSS custom-property palette, serif/sans typography, dark hero overlay, responsive spacing, focus indicator, and reduced-motion rule.
+- Give each page a single `h1`; use `main`, `section`, `article`, `header`, `nav`, and `footer` landmarks appropriately.
+- Use `NavLink` so active state is both visible and conveyed with `aria-current="page"`.
+- Keep the skip link targeting the layout's main content container.
+- Set route-specific document titles through a small page-title module; preserve the static default metadata in `index.html`.
+- Render profile home images as supplementary visuals and portraits with descriptive placeholder alternatives until authentic image descriptions are provided.
+- Restrict card motion to opacity, transform, and gradient changes, disabling it under reduced motion.
 
 ## Implementation Plan
 
-1. Replace the Vite starter UI and global styles with the design-token layer, base semantics, metadata, and static page skeleton.
-2. Add the community configuration and Chronicle data, then render the Hero, Longkeep, values, Chronicle, dashboard, join, and footer sections from the confirmed PRD content.
-3. Add documented local image placeholders and apply the responsive atmospheric visual treatment across phone, tablet, and desktop breakpoints.
-4. Perform manual acceptance checks at the homepage seam: keyboard navigation, focus, link behavior, absent and configured Discord states, reduced motion, contrast, and responsive layouts.
-5. Run `npm run lint` and `npm run build` under Node.js 24. Address failures, then present the implementation for review without pushing, merging, or deploying.
+1. Install React Router and introduce the route tree, layout, shared header/footer, shared Discord action, active states, and title handling.
+2. Extract the existing hero into the concise home page; add route previews and remove detailed duplicate content.
+3. Create Village and Chronicle pages from the existing data and settlement content.
+4. Add the typed villager model, documented local placeholders, and responsive character-card gallery.
+5. Document the Nginx history fallback, perform manual direct-route, keyboard, active-navigation, responsive, contrast, and reduced-motion checks.
+6. Run lint and production build under Node.js 24, review the changes, and present them for approval without pushing, merging, or deploying.
 
 ## Verification Plan
 
-No test runner will be added for this content-led MVP. The build and lint commands provide structural verification; manual browser checks provide user-facing verification.
-
 | Check | Expected result |
 | --- | --- |
-| Desktop, tablet, mobile viewport | No clipped content, unusable navigation, or horizontal overflow. |
-| Keyboard only | Skip/navigation/links are reachable in a logical order with visible focus. |
-| Discord URL absent | Calls to action clearly state that the invite is unavailable and do not navigate to an invented destination. |
-| Discord URL configured | All Discord calls lead to the configured invitation. |
-| Dashboard action | Opens the supplied Grafana public dashboard in a new tab. |
-| Reduced motion | Nonessential transitions and animation are removed or reduced. |
-| `npm run lint` | Oxlint exits successfully. |
-| `npm run build` | TypeScript and Vite produce a static `dist/` directory successfully. |
-
-## Rejected Alternatives
-
-- **CMS or database:** adds operations and an editing interface before the community needs them.
-- **Client-side routing:** there is one page and in-page navigation is sufficient.
-- **Server-status API:** duplicates the existing Grafana dashboard and risks presenting stale or invented data.
-- **External image/font services:** create avoidable availability, privacy, and licensing dependencies.
-- **Automated UI test framework:** introduces tooling with low leverage for this first static page; reassess if interactions or stateful features are added.
+| Every internal URL | Renders the intended page through client-side navigation and direct SPA entry. |
+| Browser back/forward | Restores the expected route and active navigation state. |
+| Keyboard only | Skip link, navigation, page links, and external actions have a logical order and visible focus. |
+| Narrow viewport | Header navigation and villager gallery stay usable with no horizontal overflow. |
+| Placeholder villagers | Explicitly communicate unavailable authentic information; no fabricated profile data is visible. |
+| Discord URL absent/configured | Actions are respectively unavailable or link to the configured invitation. |
+| Dashboard action | Opens the supplied public Grafana URL in a new tab. |
+| Reduced motion | Nonessential transition and animation are removed or reduced. |
+| `npm run lint` and `npm run build` | Complete successfully under Node.js 24. |
