@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Longkeep hero screenshot placeholder">
+  <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#313b38"/><stop offset=".55" stop-color="#5d5949"/><stop offset="1" stop-color="#1b211e"/></linearGradient><radialGradient id="glow" cx="52%" cy="68%" r="35%"><stop stop-color="#d9924c" stop-opacity=".8"/><stop offset="1" stop-color="#d9924c" stop-opacity="0"/></radialGradient></defs>
+  <rect width="1600" height="900" fill="url(#sky)"/><rect width="1600" height="900" fill="url(#glow)"/>
+  <path d="M0 610 150 520l90 42 110-135 100 96 120-175 145 158 155-237 132 220 125-138 145 185 120-93 123 120v264H0Z" fill="#202924"/>
+  <path d="m270 690 70-180 95 0 90 180m120 0 65-260h125l80 260m170 0 55-190h105l80 190" fill="#151b18"/>
+  <g fill="#e5a060"><rect x="320" y="590" width="25" height="36"/><rect x="382" y="590" width="25" height="36"/><rect x="706" y="525" width="30" height="45"/><rect x="790" y="525" width="30" height="45"/><rect x="1030" y="565" width="24" height="34"/><rect x="1090" y="565" width="24" height="34"/></g>
+  <text x="800" y="830" fill="#e6d7ba" font-family="Georgia, serif" font-size="25" text-anchor="middle" letter-spacing="6">LONGKEEP COMMUNITY SCREENSHOT PLACEHOLDER</text>
+</svg>
