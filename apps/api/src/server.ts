@@ -4,6 +4,7 @@ import Fastify from 'fastify'
 import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import { getConfig } from './config.js'
 import { openDatabase } from './db.js'
+import { claimOAuthTransaction } from './oauth-transactions.js'
 
 const config = getConfig()
 const database = openDatabase(config.databasePath)
@@ -30,9 +31,8 @@ app.get('/api/auth/discord/callback', async (request, reply) => {
   const transaction = request.cookies.oauth_transaction
   if (query.error) return reply.redirect(`${config.appOrigin}/?auth=cancelled`)
   if (!query.code || !query.state || !transaction) return reply.redirect(`${config.appOrigin}/?auth=invalid`)
-  const record = database.prepare('SELECT * FROM oauth_login_transactions WHERE state_hash = ? AND used_at IS NULL AND expires_at > ?').get(hash(query.state), now()) as { transaction_cookie_hash: string; pkce_verifier: string } | undefined
-  if (!record || record.transaction_cookie_hash !== hash(transaction)) return reply.redirect(`${config.appOrigin}/?auth=invalid`)
-  database.prepare('UPDATE oauth_login_transactions SET used_at = ? WHERE state_hash = ?').run(now(), hash(query.state))
+  const record = claimOAuthTransaction(database, hash(query.state), hash(transaction), now(), now())
+  if (!record) return reply.redirect(`${config.appOrigin}/?auth=invalid`)
   try {
     const token = await fetch('https://discord.com/api/oauth2/token', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ client_id: config.discordClientId, client_secret: config.discordClientSecret, grant_type: 'authorization_code', code: query.code, redirect_uri: callback, code_verifier: record.pkce_verifier }) })
     if (!token.ok) throw new Error('token')
