@@ -16,7 +16,7 @@ export function VillagerCard({ villager }: VillagerCardProps) {
       <div className="villager-card-content">
         <p className="eyebrow">{villager.playstyle ?? 'A place in Longkeep'}</p>
         <h3>{name}</h3>
-        {villager.homeName && <p className="villager-home">{villager.homeName}</p>}
+        {(villager.title || villager.homeName || villager.houseLocation) && <p className="villager-home">{[villager.title, villager.homeName, villager.houseLocation].filter(Boolean).join(' · ')}</p>}
         {villager.biography && <p>{villager.biography}</p>}
         {villager.motto && <p className="villager-motto">“{villager.motto}”</p>}
         {villager.isPlaceholder && <p className="villager-note">This profile is waiting for approved community details.</p>}

@@ -5,13 +5,13 @@ type PageTitleProps = {
   description?: string
 }
 
+const defaultDescription = 'The Last Ember is a relaxed, cooperative Enshrouded community building a home together in Longkeep.'
+
 export function PageTitle({ title, description }: PageTitleProps) {
   useEffect(() => {
     document.title = `${title} | The Last Ember`
 
-    if (description) {
-      document.querySelector('meta[name="description"]')?.setAttribute('content', description)
-    }
+    document.querySelector('meta[name="description"]')?.setAttribute('content', description ?? defaultDescription)
   }, [description, title])
 
   return null

@@ -1,12 +1,15 @@
 export type VillagerProfile = {
   slug: string
   name?: string
+  title?: string
   playstyle?: string
   portraitImage: string
   homeImage: string
   homeName?: string
+  houseLocation?: string
   biography?: string
   motto?: string
+  ownerId?: string
   isPlaceholder?: boolean
 }
 

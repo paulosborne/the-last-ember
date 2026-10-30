@@ -9,6 +9,8 @@ export function SiteLayout() {
   useEffect(() => {
     if (hash) {
       requestAnimationFrame(() => document.getElementById(hash.slice(1))?.scrollIntoView())
+    } else {
+      window.scrollTo(0, 0)
     }
   }, [hash, pathname])
 

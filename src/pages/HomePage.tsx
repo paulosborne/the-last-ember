@@ -2,11 +2,11 @@ import { Link } from 'react-router'
 import { DiscordAction } from '../components/DiscordAction'
 import { PageTitle } from '../components/PageTitle'
 import { VillagerCard } from '../components/VillagerCard'
-import { chronicleEntries } from '../content/chronicle'
+import { getLatestChronicleIssue } from '../content/chronicle'
 import { villagers } from '../content/villagers'
 
 export function HomePage() {
-  const latestEntry = chronicleEntries[0]
+  const latestIssue = getLatestChronicleIssue()
 
   return (
     <>
@@ -25,7 +25,7 @@ export function HomePage() {
       </section>
 
       <section className="section home-introduction" aria-labelledby="longkeep-title">
-        <div className="section-heading"><p className="eyebrow">Our shared home</p><h2 id="longkeep-title">Welcome to Longkeep</h2><p>Longkeep is the settlement we are restoring and growing together: a quiet refuge in Embervale with room to make a place of your own.</p><Link className="text-link" to="/village">Explore the village <span aria-hidden="true">→</span></Link></div>
+        <div className="section-heading"><p className="eyebrow">Our shared home</p><h2 id="longkeep-title">Welcome to Longkeep</h2><p>Longkeep is a settlement being rebuilt and expanded around its ruins: a quiet refuge in Embervale with room to make a place of your own.</p><Link className="text-link" to="/village">Explore the village <span aria-hidden="true">→</span></Link></div>
       </section>
 
       <section className="section home-villagers" aria-labelledby="villagers-title">
@@ -35,7 +35,7 @@ export function HomePage() {
 
       <section className="section chronicle-preview" aria-labelledby="chronicle-title">
         <div><p className="eyebrow">From the village noticeboard</p><h2 id="chronicle-title">The Village Chronicle</h2></div>
-        <article className="chronicle-entry"><p className="entry-week">{latestEntry.week}</p><h3>{latestEntry.title}</h3><p className="entry-summary">{latestEntry.summary}</p><Link className="text-link" to="/chronicle">Read the Chronicle <span aria-hidden="true">→</span></Link></article>
+        <article className="chronicle-entry"><p className="entry-week">{latestIssue.label}</p><h3>{latestIssue.title}</h3><p className="entry-summary">{latestIssue.excerpt}</p><Link className="text-link" to={`/chronicle/${latestIssue.slug}`}>Read the Chronicle <span aria-hidden="true">→</span></Link></article>
       </section>
 
       <section className="join" id="join" aria-labelledby="join-title"><div><p className="eyebrow">The fire is warm</p><h2 id="join-title">There's Always Room by the Fire</h2><p>Whether you are setting out for the first time or looking for a quieter place to return to, you are welcome to learn more about Longkeep.</p><DiscordAction /></div></section>
