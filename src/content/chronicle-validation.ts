@@ -78,7 +78,7 @@ function validateBody(filename: string, body: string, errors: string[]) {
     if (!isSafeLink(href)) errors.push(`${filename}: unsafe Markdown link "${href}"`)
   }
 
-  for (const match of body.matchAll(/^[ \t]{0,3}\[[^\]]+\]:[ \t]*(?:<([^>\n]+)>|(\S+))/gm)) {
+  for (const match of body.matchAll(/^[ \t]{0,3}\[[^\]]+\]:[ \t]*(?:\r?\n[ \t]*)?(?:<([^>\n]+)>|(\S+))/gm)) {
     const href = match[1] ?? match[2]
     if (!isSafeLink(href)) errors.push(`${filename}: unsafe Markdown link "${href}"`)
   }

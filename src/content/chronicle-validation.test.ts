@@ -53,17 +53,28 @@ describe('published Chronicle validation', () => {
     ])).toThrow(/acknowledgements require approved: true[\s\S]*inline body images/)
   })
 
-  it('rejects unsafe reference links and every reference-style body image', () => {
+  it('rejects unsafe reference links with multiline definitions', () => {
     expect(() => parsePublishedChronicles([
-      article('unsafe-reference.md', {}, `[Unsafe reference][unsafe]
+      article('unsafe-reference.md', {}, '[Unsafe reference][unsafe]\n\n[unsafe]:\n  javascript:alert(1)'),
+    ])).toThrow(/unsafe Markdown link "javascript:alert\(1\)"/)
+  })
 
-![Full reference image][image]
-![Collapsed reference image][]
-![Shortcut reference image]
+  it('rejects full reference-style body images', () => {
+    expect(() => parsePublishedChronicles([
+      article('full-reference-image.md', {}, '![Full reference image][image]\n\n[image]: /images/old-town-placeholder.svg'),
+    ])).toThrow(/reference-style body images/)
+  })
 
-[unsafe]: javascript:alert(1)
-[image]: /images/old-town-placeholder.svg`),
-    ])).toThrow(/(?=[\s\S]*unsafe Markdown link "javascript:alert\(1\)")(?=[\s\S]*reference-style body images)/)
+  it('rejects collapsed reference-style body images', () => {
+    expect(() => parsePublishedChronicles([
+      article('collapsed-reference-image.md', {}, '![Collapsed reference image][]\n\n[collapsed reference image]: /images/old-town-placeholder.svg'),
+    ])).toThrow(/reference-style body images/)
+  })
+
+  it('rejects shortcut reference-style body images', () => {
+    expect(() => parsePublishedChronicles([
+      article('shortcut-reference-image.md', {}, '![Shortcut reference image]\n\n[shortcut reference image]: /images/old-town-placeholder.svg'),
+    ])).toThrow(/reference-style body images/)
   })
 
   it('rejects cover paths that escape the public images directory', () => {
