@@ -1,6 +1,11 @@
 # Important Developments
 
-## Confirmed
+**Source:** Administrator-supplied project brief
+**Observed or established:** Unknown
+**Verification:** Administrator-supplied; not independently verified
+**Verified on:** Unknown
+**Human approver:** Not recorded
+**Lifecycle:** historical
 
 - Early community activity established Old Town and New Longkeep as settlement areas.
 - Communal storage was identified for improvement.

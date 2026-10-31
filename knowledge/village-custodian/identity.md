@@ -1,6 +1,11 @@
 # Community Identity
 
-## Confirmed
+**Source:** Administrator-supplied project brief
+**Observed or established:** Unknown
+**Verification:** Administrator-supplied; not independently verified
+**Verified on:** Unknown
+**Human approver:** Not recorded
+**Lifecycle:** current
 
 - The community is The Last Ember.
 - It is relaxed, mature, cooperative, and PvE-focused.

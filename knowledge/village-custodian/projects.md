@@ -1,6 +1,11 @@
 # Ongoing Projects
 
-## Confirmed
+**Source:** Administrator-supplied project brief
+**Observed or established:** Unknown
+**Verification:** Administrator-supplied; not independently verified
+**Verified on:** Unknown
+**Human approver:** Not recorded
+**Lifecycle:** current
 
 - The community is developing New Longkeep and restoring Old Town.
 - Shared storage and crafting facilities are communal concerns.
