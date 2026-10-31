@@ -22,6 +22,29 @@ State:
 
 Workers must remain within the agreed scope. They must not invent requirements, credentials, product facts, or verification results. Preserve unrelated changes and ask when a conflict or ambiguity prevents a safe decision.
 
+## Handoff Packet
+
+Every implementation, review, remediation, or re-review handoff includes these canonical, unabridged fields:
+
+- original issue/specification requirements and acceptance criteria;
+- exact base and target refs;
+- complete changed-file list (or `none` before implementation);
+- scope, authority, and applicable context;
+- evidence ledger: command, result, ref, and what it supports;
+- risk tier and rationale;
+- open finding IDs and remediation history; and
+- the required next output.
+
+Do not replace the original requirements with a summary. Unknown, absent, or unrun evidence must be labelled as such.
+
+## Risk and Validation
+
+Classify work as `lightweight`, `standard`, or `security-critical`. `lightweight` is prohibited when the change involves authentication or authorization, permissions, secrets, external I/O, persistence or schema, shared components, generated or release artifacts, dependencies or configuration, or unclear impact. Uncertainty escalates to at least `standard`. Security-critical work requires the strongest available model and independent review.
+
+Validation evidence may be reused only when it is demonstrably unaffected by the change. Rerun affected acceptance checks, shared-dependency checks, reviewer-requested checks, and environment-sensitive checks. Record why each unrepeated check remains valid. Final validation evidence is mandatory before review or human approval.
+
+Focused re-review is allowed only after the Reviewer has received the complete re-review handoff packet. It is limited to the remediation and its affected dependencies; it does not replace the original requirements or Reviewer independence. Never suppress findings.
+
 ## Final Report
 
 Report these sections clearly:
@@ -34,3 +57,5 @@ Report these sections clearly:
 - **Human review required:** security, migration, deployment, GitHub, or product decisions needing approval.
 
 When blocked, stop before guessing, state the blocker and evidence, identify the smallest required human input, and leave the worktree in a clear state. A worker may not claim completion solely from intent or a successful command unrelated to the acceptance criteria.
+
+Keep reports role-specific and concise. Separate **measured** facts (with evidence) from **assumptions** (not confirmed by the issue or evidence).

@@ -15,13 +15,36 @@ The Engineering Orchestrator is a primary OpenCode agent that coordinates bounde
 | RE-REVIEW | Reviewer assesses the remediation scope and unresolved findings. |
 | HUMAN APPROVAL | Human receives delivery status, risks, evidence, and merge/deployment decision. |
 
-The Orchestrator permits at most two remediation/re-review cycles. It escalates security risks, unmet criteria, or unresolved findings after that limit.
+The Orchestrator permits at most two remediation/re-review cycles in the same subsystem. If both are unsuccessful, it stops for a root-cause reassessment and escalates security risks, unmet criteria, and unresolved findings. Findings are never suppressed.
 
 ## Delegation Contract
 
-Every delegation identifies the issue/specification, input revision, context files, allowed files, authority, acceptance criteria, verification commands, and report format from `.agents/skills/worker-contract/SKILL.md`.
+Every delegation carries the worker-contract handoff packet: canonical original requirements and acceptance criteria, exact base and target refs, complete changed-file list, scope and authority, relevant context, an evidence ledger, risk tier/rationale, open finding IDs, remediation history, and the required next output. Unknown or unrun items are explicit; original requirements are never replaced by a summary.
 
-The Reviewer must receive the original requirements, exact base and target revisions, changed-file list, implementation evidence, and any remediation history. Reviewer findings remain verbatim in the final delivery report.
+Risk is `lightweight`, `standard`, or `security-critical`. Lightweight work excludes authentication/authorization, permissions, secrets, external I/O, persistence/schema, shared components, generated/release artifacts, dependencies/configuration, and unclear impact. Uncertainty escalates. Security-critical work retains the strongest available model and independent review.
+
+Validation reuses evidence only when demonstrably unaffected. Rerun affected acceptance and shared-dependency checks plus reviewer-requested and environment-sensitive checks. Document why each unrepeated check remains valid. Final validation evidence is mandatory.
+
+The Reviewer must receive the complete packet before full review or focused re-review. Focused re-review covers only remediation and affected dependencies, remains independent, and uses the canonical original requirements. Reviewer findings remain verbatim in the final delivery report.
+
+## Local Observability
+
+Use only existing local OpenCode stats, session, or sanitized export facilities and approved data-handling rules. Never retain or share raw exports, prompts, or secrets. Do not claim time, token, or cost savings without attributable measurements; label estimates as assumptions.
+
+## Non-destructive Benchmark Protocol Template
+
+Use a docs-only task to compare a baseline and workflow run:
+
+```text
+Task/ref:
+Required custom delegation preflight: pass | STOP (reason)
+Baseline/run local metric or elapsed time:
+Completed handoffs:
+Sanitized evidence location:
+Unavailable metrics / assumptions:
+```
+
+Before each run, verify that the required custom delegation can execute. If it cannot, stop and report the preflight failure; do not substitute an agent or collect telemetry. Do not record raw exports, prompts, or secrets, and do not present unavailable metrics as savings.
 
 ## Human Control
 
