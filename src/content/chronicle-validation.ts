@@ -44,6 +44,12 @@ function isRealDate(value: string): boolean {
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
 }
 
+function dateString(value: unknown): string | undefined {
+  if (nonEmptyString(value)) return value
+  if (value instanceof Date && !Number.isNaN(value.valueOf())) return value.toISOString().slice(0, 10)
+  return undefined
+}
+
 function validateBody(filename: string, body: string, errors: string[]) {
   if (/!\[[^\]]*\]\([^)]*\)/.test(body)) {
     errors.push(`${filename}: inline body images are not supported; use the cover metadata instead`)
@@ -74,7 +80,7 @@ export function parsePublishedChronicles(sources: ChronicleSource[], options: Va
     const slug = data.slug
     const title = data.title
     const summary = data.summary
-    const publishedOn = data.date
+    const publishedOn = dateString(data.date)
 
     if (!nonEmptyString(slug) || !slugPattern.test(slug)) errors.push(`${source.filename}: slug must be lowercase kebab-case`)
     if (slug !== filenameSlug) errors.push(`${source.filename}: slug must match its filename`)
@@ -82,11 +88,12 @@ export function parsePublishedChronicles(sources: ChronicleSource[], options: Va
     if (nonEmptyString(slug)) seenSlugs.add(slug)
     if (!nonEmptyString(title)) errors.push(`${source.filename}: title is required`)
     if (!nonEmptyString(summary)) errors.push(`${source.filename}: summary is required`)
-    if (!nonEmptyString(publishedOn) || !isRealDate(publishedOn)) errors.push(`${source.filename}: date must be a real YYYY-MM-DD date`)
+    if (!publishedOn || !isRealDate(publishedOn)) errors.push(`${source.filename}: date must be a real YYYY-MM-DD date`)
     if (data.status !== 'published') errors.push(`${source.filename}: status must be "published"`)
 
     const approval = data.approval
-    if (!isRecord(approval) || approval.approved !== true || !nonEmptyString(approval.approvedOn) || !isRealDate(approval.approvedOn)) {
+    const approvedOn = isRecord(approval) ? dateString(approval.approvedOn) : undefined
+    if (!isRecord(approval) || approval.approved !== true || !approvedOn || !isRealDate(approvedOn)) {
       errors.push(`${source.filename}: approval must include approved: true and a real approvedOn date`)
     }
 

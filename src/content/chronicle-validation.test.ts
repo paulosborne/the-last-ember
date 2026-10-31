@@ -36,6 +36,10 @@ describe('published Chronicle validation', () => {
     expect(parsePublishedChronicles([])).toEqual([])
   })
 
+  it('accepts an unquoted valid YAML date', () => {
+    expect(parsePublishedChronicles([article('unquoted-date.md', { date: '2026-02-03' })])[0]?.publishedOn).toBe('2026-02-03')
+  })
+
   it('reports actionable invalid metadata diagnostics', () => {
     expect(() => parsePublishedChronicles([
       article('wrong-name.md', { slug: 'Not-safe', date: '"2026-02-30"', status: 'draft', approval: 'false' }, 'An [unsafe link](javascript:alert(1)).'),
