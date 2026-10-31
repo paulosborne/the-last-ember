@@ -50,13 +50,36 @@ function dateString(value: unknown): string | undefined {
   return undefined
 }
 
+function isLocalCoverSource(src: string): boolean {
+  try {
+    const url = new URL(src, 'https://chronicles.invalid')
+    if (url.pathname !== src || url.search || url.hash || !url.pathname.startsWith('/images/')) return false
+
+    return url.pathname.split('/').slice(2).every((segment) => {
+      const decoded = decodeURIComponent(segment)
+      return decoded.length > 0 && decoded !== '.' && decoded !== '..' && !decoded.includes('/') && !decoded.includes('\\')
+    })
+  } catch {
+    return false
+  }
+}
+
 function validateBody(filename: string, body: string, errors: string[]) {
   if (/!\[[^\]]*\]\([^)]*\)/.test(body)) {
     errors.push(`${filename}: inline body images are not supported; use the cover metadata instead`)
   }
 
+  if (/!\[[^\]]*\](?:[ \t]*\[[^\]]*\]|(?![ \t]*\())/.test(body)) {
+    errors.push(`${filename}: reference-style body images are not supported; use the cover metadata instead`)
+  }
+
   for (const match of body.matchAll(/(?<!!)\[[^\]]*\]\(([^\s)]+)/g)) {
     const href = match[1]
+    if (!isSafeLink(href)) errors.push(`${filename}: unsafe Markdown link "${href}"`)
+  }
+
+  for (const match of body.matchAll(/^[ \t]{0,3}\[[^\]]+\]:[ \t]*(?:<([^>\n]+)>|(\S+))/gm)) {
+    const href = match[1] ?? match[2]
     if (!isSafeLink(href)) errors.push(`${filename}: unsafe Markdown link "${href}"`)
   }
 }
@@ -99,7 +122,7 @@ export function parsePublishedChronicles(sources: ChronicleSource[], options: Va
 
     let cover: ChronicleCover | undefined
     if (data.cover !== undefined) {
-      if (!isRecord(data.cover) || !nonEmptyString(data.cover.src) || !data.cover.src.startsWith('/images/') || !nonEmptyString(data.cover.alt)) {
+      if (!isRecord(data.cover) || !nonEmptyString(data.cover.src) || !isLocalCoverSource(data.cover.src) || !nonEmptyString(data.cover.alt)) {
         errors.push(`${source.filename}: cover requires a local /images/ src and nonempty alt text`)
       } else {
         if (data.cover.caption !== undefined && !nonEmptyString(data.cover.caption)) errors.push(`${source.filename}: cover caption must be nonempty when provided`)

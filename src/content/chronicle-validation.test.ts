@@ -53,6 +53,27 @@ describe('published Chronicle validation', () => {
     ])).toThrow(/acknowledgements require approved: true[\s\S]*inline body images/)
   })
 
+  it('rejects unsafe reference links and every reference-style body image', () => {
+    expect(() => parsePublishedChronicles([
+      article('unsafe-reference.md', {}, `[Unsafe reference][unsafe]
+
+![Full reference image][image]
+![Collapsed reference image][]
+![Shortcut reference image]
+
+[unsafe]: javascript:alert(1)
+[image]: /images/old-town-placeholder.svg`),
+    ])).toThrow(/(?=[\s\S]*unsafe Markdown link "javascript:alert\(1\)")(?=[\s\S]*reference-style body images)/)
+  })
+
+  it('rejects cover paths that escape the public images directory', () => {
+    for (const src of ['/images/../favicon.svg', '/images/%2e%2e/favicon.svg']) {
+      expect(() => parsePublishedChronicles([
+        article('escaped-cover.md', { cover: `\n  src: ${src}\n  alt: "Escaped asset"` }),
+      ])).toThrow(/cover requires a local \/images\/ src/)
+    }
+  })
+
   it('accepts only safe link protocols', () => {
     expect(isSafeLink('https://example.test')).toBe(true)
     expect(isSafeLink('/chronicles')).toBe(true)
