@@ -331,3 +331,13 @@ Required server-only variables: `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `D
 - Automatic mapping of Discord roles to organiser roles.
 - Multiple guilds, recurring events, waitlists, notifications, calendar exports, image uploads, and event comments.
 - Multi-host database operation, background jobs, and a managed database.
+
+## Approved Issue #2 Amendment: Chronicle Markdown Design
+
+This amendment supersedes earlier Chronicle route and typed-content design where they conflict. The route tree will use `/chronicles` and `/chronicles/:slug` as the canonical public archive and article routes. Client-side legacy handling redirects `/chronicle` to `/chronicles`; `/chronicle/:slug` redirects only to an existing published article, with drafts, fixtures, unknown canonical slugs, and unavailable legacy articles using the local not-found page. The archive sorts published records by date descending and renders an honest empty state; the homepage preview also remains empty-state safe. Week One has no public record until its source, date, and human publication approval are complete.
+
+The build path will select only `content/chronicles/published/*.md` for the client bundle. `content/chronicles/drafts/` and `content/chronicles/fixtures/` are excluded from public imports and contain only repository-reader-safe material. Editorial evidence, private/raw Discord data, unapproved attribution, sensitive material, and Custodian records are separate from public Markdown. The Village Custodian has no publishing, deployment, or website-article modification authority.
+
+`gray-matter` parses published frontmatter and `react-markdown` renders the Markdown body without raw HTML. Required frontmatter includes slug, title, summary, publication date, publication status, and publication-approval metadata; acknowledgements must be explicitly approved. The validation seam performs ordinary build-time checks for required fields, unique filename-matching slugs, valid calendar dates, approval metadata, approved acknowledgements, existing local cover assets, and safe link forms. Cover-only local images require alt text and may have captions; inline body images, HTML/MDX, embeds, and arbitrary components are deferred.
+
+Planned verification includes tests for ordering, empty corpus, public filtering, canonical and legacy routing, invalid metadata diagnostics, and safe Markdown/link/cover rendering, plus manual accessibility and navigation checks. `npm run lint` and `npm run build` will remain required checks once implementation is approved. Implementation awaits UX approval.

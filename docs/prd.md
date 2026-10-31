@@ -118,6 +118,16 @@ Server Status remains the supplied external Grafana dashboard link and is not a 
 - Approved Longkeep, home, and character portrait screenshots.
 - Authentic villager display names, playstyles, home names/locations, and optional biographies or mottos.
 
+## Approved Issue #2 Amendment: Chronicle Markdown MVP
+
+This amendment supersedes the earlier Chronicle route and typed-content scope where they conflict. The canonical public archive and article routes are `/chronicles` and `/chronicles/:slug`. The client-side `/chronicle` legacy path navigates to `/chronicles`; `/chronicle/:slug` navigates only when the matching published article exists, otherwise using the local not-found experience. The archive is newest-first, its homepage preview is graceful when the corpus is empty, and Week One remains unpublished until complete source material, a publication date, and human approval exist.
+
+Published public articles are local Markdown in `content/chronicles/published/`. `content/chronicles/drafts/` and `content/chronicles/fixtures/` are safe-for-repository-reader material and must never enter the public bundle. Editorial evidence, raw/private Discord material, unapproved attribution, sensitive information, and Village Custodian material remain separate from public content; the Village Custodian cannot publish, deploy, or modify website articles.
+
+Each published article records its slug, title, summary, publication date, publication status, required publication-approval metadata, optional local cover metadata, and explicitly approved acknowledgements. Covers are the only supported images: they use local assets, required alt text, and optional captions. Inline images, HTML/MDX, embeds, arbitrary components, and other media are out of scope. The MVP adds only `gray-matter` and `react-markdown`; Markdown is rendered without raw HTML.
+
+Ordinary engineering validation will reject missing or malformed public metadata, non-unique or filename-mismatched slugs, invalid calendar dates, absent approval metadata, unapproved acknowledgements, absent local cover assets, and unsafe links. Planned verification covers newest-first ordering, empty corpus and homepage preview, published-only filtering, canonical and legacy routes, invalid metadata diagnostics, cover/link safety, Markdown rendering, accessibility, and preservation of unrelated navigation and visual behavior. Implementation awaits UX approval.
+
 ## Experience Refinement Scope
 
 This refinement preserves the existing visual identity and client-side architecture. It improves editorial hierarchy, responsive navigation, the Village content model, profile-card presentation, and Chronicle publishing without adding a backend or rebuilding the site.
