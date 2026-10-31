@@ -24,5 +24,6 @@ describe('Chronicle routes', () => {
 
   it('uses not found for unavailable canonical articles', () => {
     expect(resolveChronicleRoute('/chronicles/fixture', published)).toEqual({ kind: 'not-found' })
+    expect(resolveChronicleRoute('/chronicles/fictional-draft-preview', published)).toEqual({ kind: 'not-found' })
   })
 })

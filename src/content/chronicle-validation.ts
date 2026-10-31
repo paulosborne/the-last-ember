@@ -20,6 +20,8 @@ export type PublishedChronicle = {
   body: string
 }
 
+export type DraftChronicle = PublishedChronicle
+
 export type ChronicleSource = {
   filename: string
   raw: string
@@ -115,7 +117,7 @@ function validateBody(filename: string, body: string, errors: string[]) {
   })
 }
 
-export function parsePublishedChronicles(sources: ChronicleSource[], options: ValidationOptions = {}): PublishedChronicle[] {
+function parseChronicles(sources: ChronicleSource[], expectedStatus: 'published' | 'draft', options: ValidationOptions = {}): PublishedChronicle[] {
   const errors: string[] = []
   const chronicles: PublishedChronicle[] = []
   const seenSlugs = new Set<string>()
@@ -143,12 +145,15 @@ export function parsePublishedChronicles(sources: ChronicleSource[], options: Va
     if (!nonEmptyString(title)) errors.push(`${source.filename}: title is required`)
     if (!nonEmptyString(summary)) errors.push(`${source.filename}: summary is required`)
     if (!publishedOn || !isRealDate(publishedOn)) errors.push(`${source.filename}: date must be a real YYYY-MM-DD date`)
-    if (data.status !== 'published') errors.push(`${source.filename}: status must be "published"`)
+    if (data.status !== expectedStatus) errors.push(`${source.filename}: status must be "${expectedStatus}"`)
 
     const approval = data.approval
     const approvedOn = isRecord(approval) ? dateString(approval.approvedOn) : undefined
-    if (!isRecord(approval) || approval.approved !== true || !approvedOn || !isRealDate(approvedOn)) {
+    if (expectedStatus === 'published' && (!isRecord(approval) || approval.approved !== true || !approvedOn || !isRealDate(approvedOn))) {
       errors.push(`${source.filename}: approval must include approved: true and a real approvedOn date`)
+    }
+    if (expectedStatus === 'draft' && (!isRecord(approval) || approval.approved !== false || approvedOn !== undefined)) {
+      errors.push(`${source.filename}: draft approval must include approved: false and no approvedOn date`)
     }
 
     let cover: ChronicleCover | undefined
@@ -181,4 +186,12 @@ export function parsePublishedChronicles(sources: ChronicleSource[], options: Va
 
   if (errors.length > 0) throw new Error(`Chronicle metadata validation failed:\n- ${errors.join('\n- ')}`)
   return chronicles.sort((a, b) => b.publishedOn.localeCompare(a.publishedOn) || a.slug.localeCompare(b.slug))
+}
+
+export function parsePublishedChronicles(sources: ChronicleSource[], options: ValidationOptions = {}): PublishedChronicle[] {
+  return parseChronicles(sources, 'published', options)
+}
+
+export function parseDraftChronicles(sources: ChronicleSource[], options: ValidationOptions = {}): DraftChronicle[] {
+  return parseChronicles(sources, 'draft', options)
 }

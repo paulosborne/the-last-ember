@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MarkdownArticleBody } from '../components/MarkdownArticleBody'
-import { parsePublishedChronicles } from './chronicle-validation'
+import { parseDraftChronicles, parsePublishedChronicles } from './chronicle-validation'
 import { isSafeLink } from './markdown-safety'
 
 function article(filename: string, overrides: Record<string, string> = {}, body = 'A safe [local link](/village).') {
@@ -135,5 +135,33 @@ describe('published Chronicle validation', () => {
     expect(isSafeLink('//example.test')).toBe(false)
     expect(isSafeLink('javascript:alert(1)')).toBe(false)
     expect(isSafeLink('data:text/html,unsafe')).toBe(false)
+  })
+})
+
+describe('draft Chronicle validation', () => {
+  it('uses the Chronicle Markdown safety and cover validation rules for drafts', () => {
+    const draft = article('fictional-draft.md', {
+      status: 'draft',
+      approval: '\n  approved: false',
+      cover: '\n  src: /images/old-town-placeholder.svg\n  alt: "A fictional preview cover"\n  caption: "Fictional fixture caption"',
+    }, 'A [safe link](/chronicles) and no body images.')
+
+    expect(parseDraftChronicles([draft], { assetExists: (src) => src === '/images/old-town-placeholder.svg' })).toMatchObject([{
+      slug: 'fictional-draft',
+      cover: {
+        src: '/images/old-town-placeholder.svg',
+        alt: 'A fictional preview cover',
+        caption: 'Fictional fixture caption',
+      },
+    }])
+  })
+
+  it('does not allow a draft to bypass Chronicle Markdown safety controls', () => {
+    const draft = article('unsafe-draft.md', {
+      status: 'draft',
+      approval: '\n  approved: false',
+    }, 'An [unsafe link](javascript:alert(1)).')
+
+    expect(() => parseDraftChronicles([draft])).toThrow(/unsafe Markdown link/)
   })
 })

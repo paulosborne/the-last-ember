@@ -8,6 +8,7 @@ import { HomePage } from './pages/HomePage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { VillagePage } from './pages/VillagePage'
 import { VillagersPage } from './pages/VillagersPage'
+import { chroniclePreviewRoute } from 'virtual:chronicle-preview-route'
 import './App.css'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="village" element={<VillagePage />} />
           <Route path="villagers" element={<VillagersPage />} />
           <Route path="chronicles" element={<ChroniclePage />} />
+          {chroniclePreviewRoute}
           <Route path="chronicles/:slug" element={<ChronicleArticlePage />} />
           <Route path="chronicle" element={<Navigate to="/chronicles" replace />} />
           <Route path="chronicle/:slug" element={<LegacyChronicleArticle />} />
