@@ -1,9 +1,13 @@
 export function isSafeLink(href: string | undefined): boolean {
   if (!href) return false
-  if (href.startsWith('/') && !href.startsWith('//')) return true
+  if (/^(?:\/|\\){2}/.test(href)) return false
+  if (href.startsWith('/')) return true
   if (href.startsWith('#')) return true
   try {
-    const protocol = new URL(href).protocol
+    const url = new URL(href, 'https://chronicles.invalid')
+    if (url.origin === 'https://chronicles.invalid') return true
+
+    const protocol = url.protocol
     return protocol === 'https:' || protocol === 'http:' || protocol === 'mailto:'
   } catch {
     return false

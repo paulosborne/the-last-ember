@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { MarkdownArticleBody } from '../components/MarkdownArticleBody'
 import { parsePublishedChronicles } from './chronicle-validation'
 import { isSafeLink } from './markdown-safety'
 
@@ -47,34 +50,73 @@ describe('published Chronicle validation', () => {
     ], { assetExists: () => false })).toThrow(/slug must be lowercase kebab-case[\s\S]*real YYYY-MM-DD[\s\S]*status must be "published"[\s\S]*approval[\s\S]*unsafe Markdown link[\s\S]*cover requires/)
   })
 
-  it('requires approval for acknowledgements and rejects body images', () => {
+  it('requires approval for acknowledgements and rejects inline body images', () => {
     expect(() => parsePublishedChronicles([
       article('unapproved-thanks.md', { acknowledgements: '\n  entries:\n    - Someone' }, '![Not allowed](/images/old-town-placeholder.svg)'),
-    ])).toThrow(/acknowledgements require approved: true[\s\S]*inline body images/)
+    ])).toThrow(/acknowledgements require approved: true[\s\S]*body images are not supported/)
   })
 
-  it('rejects unsafe reference links with multiline definitions', () => {
+  it('rejects unsafe inline and reference links resolved by the Markdown pipeline', () => {
     expect(() => parsePublishedChronicles([
-      article('unsafe-reference.md', {}, '[Unsafe reference][unsafe]\n\n[unsafe]:\n  javascript:alert(1)'),
-    ])).toThrow(/unsafe Markdown link "javascript:alert\(1\)"/)
+      article('unsafe-links.md', {}, '[Unsafe inline](javascript:alert(1))\n[Unsafe reference][unsafe\\ label]\n\n[unsafe\\ label]:\n  data:text/html,unsafe'),
+    ])).toThrow(/unsafe Markdown link "javascript:alert\(1\)"[\s\S]*unsafe Markdown link "data:text\/html,unsafe"/)
   })
 
   it('rejects full reference-style body images', () => {
     expect(() => parsePublishedChronicles([
       article('full-reference-image.md', {}, '![Full reference image][image]\n\n[image]: /images/old-town-placeholder.svg'),
-    ])).toThrow(/reference-style body images/)
+    ])).toThrow(/body images are not supported/)
   })
 
   it('rejects collapsed reference-style body images', () => {
     expect(() => parsePublishedChronicles([
       article('collapsed-reference-image.md', {}, '![Collapsed reference image][]\n\n[collapsed reference image]: /images/old-town-placeholder.svg'),
-    ])).toThrow(/reference-style body images/)
+    ])).toThrow(/body images are not supported/)
   })
 
   it('rejects shortcut reference-style body images', () => {
     expect(() => parsePublishedChronicles([
       article('shortcut-reference-image.md', {}, '![Shortcut reference image]\n\n[shortcut reference image]: /images/old-town-placeholder.svg'),
-    ])).toThrow(/reference-style body images/)
+    ])).toThrow(/body images are not supported/)
+  })
+
+  it('resolves escaped, multiline, and case-insensitive reference labels', () => {
+    expect(() => parsePublishedChronicles([
+      article('resolved-references.md', {}, `[Escaped label][escaped\\ label]
+[Case-insensitive][CASE LABEL]
+[Multiline][multiline]
+
+[escaped\\ label]: /chronicles
+[case label]: mailto:chronicles@example.test
+[multiline]:
+  https://example.test/chronicles`),
+    ])).not.toThrow()
+  })
+
+  it('accepts safe inline and reference link destinations', () => {
+    expect(() => parsePublishedChronicles([
+      article('safe-links.md', {}, `[HTTP](http://example.test)
+[HTTPS](https://example.test)
+[Root](/chronicles)
+[Relative](articles/today)
+[Mail][mail]
+
+[mail]: mailto:chronicles@example.test`),
+    ])).not.toThrow()
+  })
+
+  it('does not treat malformed references as links', () => {
+    const body = '[Not a link][\n\njavascript:alert(1)'
+    expect(() => parsePublishedChronicles([article('malformed-reference.md', {}, body)])).not.toThrow()
+    expect(renderToStaticMarkup(createElement(MarkdownArticleBody, undefined, body))).not.toContain('<a ')
+  })
+
+  it('uses the same escaped-reference interpretation as the Markdown renderer', () => {
+    const body = `[Rendered][escaped\\ label]
+
+[escaped\\ label]: /chronicles`
+    expect(() => parsePublishedChronicles([article('renderer-alignment.md', {}, body)])).not.toThrow()
+    expect(renderToStaticMarkup(createElement(MarkdownArticleBody, undefined, body))).toContain('<a href="/chronicles">Rendered</a>')
   })
 
   it('rejects cover paths that escape the public images directory', () => {
@@ -88,7 +130,9 @@ describe('published Chronicle validation', () => {
   it('accepts only safe link protocols', () => {
     expect(isSafeLink('https://example.test')).toBe(true)
     expect(isSafeLink('/chronicles')).toBe(true)
+    expect(isSafeLink('articles/today')).toBe(true)
     expect(isSafeLink('mailto:hello@example.test')).toBe(true)
+    expect(isSafeLink('//example.test')).toBe(false)
     expect(isSafeLink('javascript:alert(1)')).toBe(false)
     expect(isSafeLink('data:text/html,unsafe')).toBe(false)
   })

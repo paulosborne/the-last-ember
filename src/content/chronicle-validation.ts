@@ -1,4 +1,7 @@
 import matter from 'gray-matter'
+import remarkParse from 'remark-parse'
+import remarkRehype from 'remark-rehype'
+import { unified } from 'unified'
 import { isSafeLink } from './markdown-safety.js'
 
 export type ChronicleCover = {
@@ -28,6 +31,7 @@ type ValidationOptions = {
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const datePattern = /^\d{4}-\d{2}-\d{2}$/
+const markdownProcessor = unified().use(remarkParse).use(remarkRehype)
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -64,24 +68,51 @@ function isLocalCoverSource(src: string): boolean {
   }
 }
 
+type MarkdownNode = {
+  type: string
+  tagName?: string
+  properties?: Record<string, unknown>
+  children?: unknown[]
+}
+
+function isMarkdownNode(value: unknown): value is MarkdownNode {
+  return isRecord(value) && typeof value.type === 'string'
+}
+
+function visitMarkdownTree(value: unknown, visitor: (node: MarkdownNode) => void) {
+  if (!isMarkdownNode(value)) return
+  visitor(value)
+  value.children?.forEach((child) => visitMarkdownTree(child, visitor))
+}
+
 function validateBody(filename: string, body: string, errors: string[]) {
-  if (/!\[[^\]]*\]\([^)]*\)/.test(body)) {
-    errors.push(`${filename}: inline body images are not supported; use the cover metadata instead`)
+  let markdownTree: ReturnType<typeof markdownProcessor.parse>
+  let renderedTree: unknown
+
+  try {
+    markdownTree = markdownProcessor.parse(body)
+    renderedTree = markdownProcessor.runSync(markdownTree)
+  } catch (error) {
+    errors.push(`${filename}: Markdown could not be parsed safely (${error instanceof Error ? error.message : String(error)})`)
+    return
   }
 
-  if (/!\[[^\]]*\](?:[ \t]*\[[^\]]*\]|(?![ \t]*\())/.test(body)) {
-    errors.push(`${filename}: reference-style body images are not supported; use the cover metadata instead`)
-  }
+  visitMarkdownTree(markdownTree, (node) => {
+    if (node.type === 'image' || node.type === 'imageReference') {
+      errors.push(`${filename}: body images are not supported; use the cover metadata instead`)
+    }
+  })
 
-  for (const match of body.matchAll(/(?<!!)\[[^\]]*\]\(([^\s)]+)/g)) {
-    const href = match[1]
-    if (!isSafeLink(href)) errors.push(`${filename}: unsafe Markdown link "${href}"`)
-  }
+  visitMarkdownTree(renderedTree, (node) => {
+    if (node.tagName !== 'a') return
 
-  for (const match of body.matchAll(/^[ \t]{0,3}\[[^\]]+\]:[ \t]*(?:\r?\n[ \t]*)?(?:<([^>\n]+)>|(\S+))/gm)) {
-    const href = match[1] ?? match[2]
-    if (!isSafeLink(href)) errors.push(`${filename}: unsafe Markdown link "${href}"`)
-  }
+    const href = node.properties?.href
+    if (typeof href !== 'string') {
+      errors.push(`${filename}: Markdown link destination could not be resolved safely`)
+    } else if (!isSafeLink(href)) {
+      errors.push(`${filename}: unsafe Markdown link "${href}"`)
+    }
+  })
 }
 
 export function parsePublishedChronicles(sources: ChronicleSource[], options: ValidationOptions = {}): PublishedChronicle[] {
