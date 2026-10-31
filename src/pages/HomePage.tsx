@@ -2,11 +2,11 @@ import { Link } from 'react-router'
 import { DiscordAction } from '../components/DiscordAction'
 import { PageTitle } from '../components/PageTitle'
 import { VillagerCard } from '../components/VillagerCard'
-import { getLatestChronicleIssue } from '../content/chronicle'
+import { getLatestPublishedChronicle } from '../content/chronicles'
 import { villagers } from '../content/villagers'
 
 export function HomePage() {
-  const latestIssue = getLatestChronicleIssue()
+  const latestChronicle = getLatestPublishedChronicle()
 
   return (
     <>
@@ -35,7 +35,7 @@ export function HomePage() {
 
       <section className="section chronicle-preview" aria-labelledby="chronicle-title">
         <div><p className="eyebrow">From the village noticeboard</p><h2 id="chronicle-title">The Village Chronicle</h2></div>
-        <article className="chronicle-entry"><p className="entry-week">{latestIssue.label}</p><h3>{latestIssue.title}</h3><p className="entry-summary">{latestIssue.excerpt}</p><Link className="text-link" to={`/chronicle/${latestIssue.slug}`}>Read the Chronicle <span aria-hidden="true">→</span></Link></article>
+        {latestChronicle ? <article className="chronicle-entry"><p className="entry-week">Published {latestChronicle.publishedOn}</p><h3>{latestChronicle.title}</h3><p className="entry-summary">{latestChronicle.summary}</p><Link className="text-link" to={`/chronicles/${latestChronicle.slug}`}>Read the Chronicle <span aria-hidden="true">→</span></Link></article> : <p className="chronicle-empty">The Chronicle will appear here when the first approved article is ready to publish.</p>}
       </section>
 
       <section className="join" id="join" aria-labelledby="join-title"><div><p className="eyebrow">The fire is warm</p><h2 id="join-title">There's Always Room by the Fire</h2><p>Whether you are setting out for the first time or looking for a quieter place to return to, you are welcome to learn more about Longkeep.</p><DiscordAction /></div></section>

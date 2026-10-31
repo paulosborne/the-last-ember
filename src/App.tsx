@@ -1,5 +1,7 @@
-import { BrowserRouter, Route, Routes } from 'react-router'
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router'
 import { SiteLayout } from './components/SiteLayout'
+import { publishedChronicles } from './content/chronicles'
+import { resolveChronicleRoute } from './content/chronicle-routes'
 import { ChroniclePage } from './pages/ChroniclePage'
 import { ChronicleArticlePage } from './pages/ChronicleArticlePage'
 import { HomePage } from './pages/HomePage'
@@ -16,13 +18,21 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="village" element={<VillagePage />} />
           <Route path="villagers" element={<VillagersPage />} />
-          <Route path="chronicle" element={<ChroniclePage />} />
-          <Route path="chronicle/:slug" element={<ChronicleArticlePage />} />
+          <Route path="chronicles" element={<ChroniclePage />} />
+          <Route path="chronicles/:slug" element={<ChronicleArticlePage />} />
+          <Route path="chronicle" element={<Navigate to="/chronicles" replace />} />
+          <Route path="chronicle/:slug" element={<LegacyChronicleArticle />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
   )
+}
+
+function LegacyChronicleArticle() {
+  const { slug } = useParams()
+  const route = resolveChronicleRoute(`/chronicle/${slug ?? ''}`, publishedChronicles)
+  return route.kind === 'redirect' ? <Navigate to={route.to} replace /> : <NotFoundPage />
 }
 
 export default App

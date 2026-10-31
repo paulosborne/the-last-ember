@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "engines": { "node": "24.22.2" },
+  "engines": {
+    "node": "24.22.2"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -18,8 +20,10 @@
     "@fastify/cookie": "^11.1.5",
     "@fastify/rate-limit": "^11.2.1",
     "fastify": "^5.12.7",
+    "gray-matter": "^4.0.3",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "react-markdown": "^10.1.0",
     "react-router": "^8.5.1"
   },
   "devDependencies": {

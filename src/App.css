@@ -72,6 +72,7 @@ nav a:hover, nav a.is-active, .header-join { border-bottom-color: var(--ember-li
 .villagers-introduction .section-heading { max-width: 720px; }
 .chronicle-archive { max-width: 900px; margin: 0 auto; }
 .chronicle-entry--full { padding: 2rem; background: #d9cbb1; }
+.chronicle-empty { align-self: center; max-width: 52ch; border-top: 1px solid var(--line); padding-top: 1.5rem; color: var(--muted); line-height: 1.65; }
 .site-footer { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1.5rem; padding: 2rem max(1.5rem, calc((100vw - 1120px) / 2)); color: rgba(230, 215, 186, .65); background: #101312; }
 .site-footer p { font-size: .72rem; text-align: center; }
 .footer-links { display: flex; justify-content: flex-end; gap: 1rem; font-size: .7rem; }
@@ -97,6 +98,11 @@ nav a:hover, nav a.is-active, .header-join { border-bottom-color: var(--ember-li
 .article-section { margin-top: 3.5rem; }
 .article-section h2 { font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -.04em; }
 .article-section p { max-width: 65ch; margin-top: 1.25rem; font-size: 1.04rem; line-height: 1.75; }
+.article-body > :is(h2, h3) { margin-top: 3.5rem; font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -.04em; }
+.article-body > h3 { font-size: clamp(1.6rem, 3vw, 2.4rem); }
+.article-body > p, .article-body > ul, .article-body > ol { max-width: 65ch; margin-top: 1.25rem; font-size: 1.04rem; line-height: 1.75; }
+.article-body > ul, .article-body > ol { padding-left: 1.25rem; }
+.article-body a { color: var(--ember); }
 .article-section ul { display: grid; gap: .75rem; margin: 1.5rem 0 0; padding: 0; list-style: none; line-height: 1.5; }
 .article-section li::before { content: '•'; margin-right: .65rem; color: var(--ember); }
 .article-feature, .article-section figure { margin: 2rem 0 0; }

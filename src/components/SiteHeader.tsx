@@ -6,7 +6,7 @@ const navigation = [
   { to: '/', label: 'Home', end: true },
   { to: '/village', label: 'Village' },
   { to: '/villagers', label: 'Villagers' },
-  { to: '/chronicle', label: 'Chronicle' },
+  { to: '/chronicles', label: 'Chronicle' },
 ]
 
 export function SiteHeader() {
