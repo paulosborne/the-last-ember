@@ -1,32 +1,28 @@
-# React + TypeScript + Vite
+# The Last Ember
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A small community website for The Last Ember, an Enshrouded community. It uses React, TypeScript, Vite, and React Router.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Use Node.js 24.
 
-## React Compiler
+```sh
+npm install
+npm run dev
+npm run lint
+npm run build
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+`npm run build` writes the deployable static site to `dist/`.
 
-## Expanding the Oxlint configuration
+## Nginx Routes
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+The site uses browser-history routing. Configure Nginx to return the application entry point for routes that are not static files, so direct visits and browser refreshes work:
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
+```nginx
+location / {
+  try_files $uri $uri/ /index.html;
 }
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+No production infrastructure is configured by this repository.
